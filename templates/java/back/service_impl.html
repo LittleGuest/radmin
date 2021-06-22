@@ -1,0 +1,134 @@
+package {{ data.package }}.service.impl;
+
+import {{ data.package }}.domain.{{ data.class_name }};
+import me.zhengjie.exception.EntityExistException;
+import me.zhengjie.utils.ValidationUtil;
+import me.zhengjie.utils.FileUtil;
+import lombok.RequiredArgsConstructor;
+import {{ data.package }}.repository.{{ data.class_name }}Repository;
+import {{ data.package }}.service.{{ data.class_name }}Service;
+import {{ data.package }}.service.dto.{{ data.class_name }}Dto;
+import {{ data.package }}.service.dto.{{ data.class_name }}QueryCriteria;
+import {{ data.package }}.service.mapstruct.{{ data.class_name }}Mapper;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import cn.hutool.core.lang.Snowflake;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import me.zhengjie.utils.PageUtil;
+import me.zhengjie.utils.QueryHelp;
+import java.util.List;
+import java.util.Map;
+import java.io.IOException;
+import javax.servlet.http.HttpServletResponse;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+
+/**
+* @description 服务实现
+* @author {{ data.author }}
+* @date {{ data.date }}
+**/
+@Service
+@RequiredArgsConstructor
+public class {{ data.class_name }}ServiceImpl implements {{ data.class_name }}Service {
+
+private final {{ data.class_name }}Repository {{ data.change_class_name }}Repository;
+private final {{ data.class_name }}Mapper {{ data.change_class_name }}Mapper;
+
+@Override
+public Map
+<String,Object> queryAll({{ data.class_name }}QueryCriteria criteria, Pageable pageable){
+Page<{{ data.class_name }}> page = {{ data.change_class_name }}Repository.findAll((root, criteriaQuery, criteriaBuilder) -> QueryHelp.getPredicate(root,criteria,criteriaBuilder),pageable);
+return PageUtil.toPage(page.map({{ data.change_class_name }}Mapper::toDto));
+}
+
+@Override
+public List<{{ data.class_name }}Dto> queryAll({{ data.class_name }}QueryCriteria criteria){
+return {{ data.change_class_name }}Mapper.toDto({{ data.change_class_name }}Repository.findAll((root, criteriaQuery, criteriaBuilder) -> QueryHelp.getPredicate(root,criteria,criteriaBuilder)));
+}
+
+@Override
+@Transactional
+public {{ data.class_name }}Dto findById({{ data.pk_column_type }} {{ data.pk_change_column_name }}) {
+{{ data.class_name }} {{ data.change_class_name }} = {{ data.change_class_name }}Repository.findById({{ data.pk_change_column_name }}).orElseGet({{ data.class_name }}::new);
+ValidationUtil.isNull({{ data.change_class_name }}.get{{ data.pk_capital_column_name }}(),"{{ data.class_name }}","{{ data.pk_change_column_name }}",{{ data.pk_change_column_name }});
+return {{ data.change_class_name }}Mapper.toDto({{ data.change_class_name }});
+}
+
+@Override
+@Transactional(rollbackFor = Exception.class)
+public {{ data.class_name }}Dto create({{ data.class_name }} resources) {
+{% if not data.auto and data.pk_column_type == 'Long' %}
+Snowflake snowflake = IdUtil.createSnowflake(1, 1);
+resources.set{{ data.pk_capital_column_name }}(snowflake.nextId());
+{% endif %}
+{% if not data.auto and data.pk_column_type == 'String' %}
+resources.set{{ data.pk_capital_column_name }}(IdUtil.simpleUUID());
+{% endif %}
+{% if data.columns %}
+{% for column in data.columns %}
+{% if column.column_key == 'UNI' %}
+if({{ data.change_class_name }}Repository.findBy{{ column.capital_column_name }}(resources.get{{ column.capital_column_name }}()) != null){
+throw new EntityExistException({{ data.class_name }}.class,"{{ column.column_name }}",resources.get{{ column.capital_column_name }}());
+}
+{% endif %}
+{% endfor %}
+{% endif %}
+return {{ data.change_class_name }}Mapper.toDto({{ data.change_class_name }}Repository.save(resources));
+}
+
+@Override
+@Transactional(rollbackFor = Exception.class)
+public void update({{ data.class_name }} resources) {
+{{ data.class_name }} {{ data.change_class_name }} = {{ data.change_class_name }}Repository.findById(resources.get{{ data.pk_capital_column_name }}()).orElseGet({{ data.class_name }}::new);
+ValidationUtil.isNull( {{ data.change_class_name }}.get{{ data.pk_capital_column_name }}(),"{{ data.class_name }}","id",resources.get{{ data.pk_capital_column_name }}());
+
+{% if data.columns %}
+{% for column in data.columns %}
+{% if column.column_key == 'UNI' %}
+{% if loop.index == -1 %}
+{{ data.class_name }} {{ data.change_class_name }}1 = null;
+{% endif %}
+{{ data.change_class_name }}1 = {{ data.change_class_name }}Repository.findBy{{ column.capital_column_name }}(resources.get{{ column.capital_column_name }}());
+if({{ data.change_class_name }}1 != null && !{{ data.change_class_name }}1.get{{ data.pk_capital_column_name }}().equals({{ data.change_class_name }}.get{{ data.pk_capital_column_name }}())){
+throw new EntityExistException({{ data.class_name }}.class,"{{ column.column_name }}",resources.get{{ column.capital_column_name }}());
+}
+{% endif %}
+{% endfor %}
+{% endif %}
+{{ data.change_class_name }}.copy(resources);
+{{ data.change_class_name }}Repository.save({{ data.change_class_name }});
+}
+
+@Override
+public void deleteAll({{ data.pk_column_type }}[] ids) {
+for ({{ data.pk_column_type }} {{ data.pk_change_column_name }} : ids) {
+{{ data.change_class_name }}Repository.deleteById({{ data.pk_change_column_name }});
+}
+}
+
+@Override
+public void download(List<{{ data.class_name }}Dto> all, HttpServletResponse response) throws IOException {
+List
+<Map
+<String, Object>> list = new ArrayList<>();
+for ({{ data.class_name }}Dto {{ data.change_class_name }} : all) {
+Map
+<String,Object> map = new LinkedHashMap<>();
+{% if data.columns %}
+{% for column in data.columns %}
+{% if column.column_key == 'PRI' %}
+{% if column.remark != '' %}
+map.put("{{ column.remark }}", {{ data.change_class_name }}.get{{ column.capital_column_name }}());
+{% else %}
+map.put(" {{ column.change_column_name }}",  {{ data.change_class_name }}.get{{ column.capital_column_name }}());
+{% endif %}
+{% endif %}
+{% endfor %}
+{% endif %}
+list.add(map);
+}
+FileUtil.downloadExcel(list, response);
+}
+}

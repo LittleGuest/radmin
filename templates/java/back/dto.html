@@ -1,0 +1,37 @@
+package {{ data.package }}.service.dto;
+
+import lombok.Data;
+{% if data.has_timestamp %}
+import java.sql.Timestamp;
+{% endif %}
+{% if data.has_big_decimal %}
+import java.math.BigDecimal;
+{% endif %}
+import java.io.Serializable;
+{% if not data.auto and data.pk_column_type == 'Long' %}
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
+{% endif %}
+
+/**
+* @description /
+* @author {{ data.author }}
+* @date {{ data.date }}
+**/
+@Data
+public class {{ data.class_name }}Dto implements Serializable {
+{% if data.columns %}
+{% for column in data.columns %}
+{% if column.remark != '' %}
+/** {{ column.remark }} */
+{% endif %}
+{% if column.column_key == 'PRI' %}
+{% if not data.auto and data.pk_column_type == 'Long' %}
+/** 防止精度丢失 */
+@JsonSerialize(using= ToStringSerializer.class)
+{% endif %}
+{% endif %}
+private {{ column.column_type }} {{ column.change_column_name }};
+{% endfor %}
+{% endif %}
+}

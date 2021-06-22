@@ -1,0 +1,68 @@
+package {{ data.package }}.domain;
+
+import lombok.Data;
+import cn.hutool.core.bean.BeanUtil;
+import io.swagger.annotations.ApiModelProperty;
+import cn.hutool.core.bean.copier.CopyOptions;
+import javax.persistence.*;
+{% if data.is_not_null_columns %}
+import javax.validation.constraints.*;
+{% endif %}
+{% if data.has_date_annotation %}
+import javax.persistence.Entity;
+import javax.persistence.Table;
+import org.hibernate.annotations.*;
+{% endif %}
+{% if data.has_timestamp %}
+import java.sql.Timestamp;
+{% endif %}
+{% if data.has_big_decimal %}
+import java.math.BigDecimal;
+{% endif %}
+import java.io.Serializable;
+
+/**
+* @description /
+* @author {{ data.author }}
+* @date {{ data.date }}
+**/
+@Entity
+@Data
+@Table(name="{{ data.table_name }}")
+public class {{ data.class_name }} implements Serializable {
+{% if data.columns %}
+{% for column in data.columns %}
+{% if column.column_key == 'PRI' %}
+@Id
+{% if data.auto %}
+@GeneratedValue(strategy = GenerationType.IDENTITY)
+{% endif %}
+{% endif %}
+@Column(name = "{{ column.column_name }}"{% if column.column_key == 'UNI' %},unique = true{% endif %}{% if column.is_not_null and column.column_key != 'PRI' %},nullable = false{% endif %})
+{% if column.is_not_null and column.column_key != 'PRI' %}
+{% if column.column_type == 'String' %}
+@NotBlank
+{% else %}
+@NotNull
+{% endif %}
+{% endif %}
+{% if column.date_annotation %}
+{% if column.date_annotation == 'CreationTimestamp' %}
+@CreationTimestamp
+{% else %}
+@UpdateTimestamp
+{% endif %}
+{% endif %}
+{% if column.remark != '' %}
+@ApiModelProperty(value = "{{ column.remark }}")
+{% else %}
+@ApiModelProperty(value = "{{ column.change_column_name }}")
+{% endif %}
+private {{ column.column_type }} {{ column.change_column_name }};
+{% endfor %}
+{% endif %}
+
+public void copy({{ data.class_name }} source){
+BeanUtil.copyProperties(source,this, CopyOptions.create().setIgnoreNullValue(true));
+}
+}

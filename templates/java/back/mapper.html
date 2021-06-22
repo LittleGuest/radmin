@@ -1,0 +1,17 @@
+package {{ data.package }}.service.mapstruct;
+
+import me.zhengjie.base.BaseMapper;
+import {{ data.package }}.domain.{{ data.class_name }};
+import {{ data.package }}.service.dto.{{ data.class_name }}Dto;
+import org.mapstruct.Mapper;
+import org.mapstruct.ReportingPolicy;
+
+/**
+* @description /
+* @author {{ data.author }}
+* @date {{ data.date }}
+**/
+@Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
+public interface {{ data.class_name }}Mapper extends BaseMapper<{{ data.class_name }}Dto, {{ data.class_name }}> {
+
+}

@@ -1,0 +1,25 @@
+package {{ data.package }}.repository;
+
+import {{ data.package }}.domain.{{ data.table_name }};
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+
+/**
+* @description /
+* @author {{ data.author }}
+* @date {{ data.date }}
+**/
+public interface {{ data.table_name }}Repository extends JpaRepository<{{ data.table_name }}, {{ data.pk_column_type }}>, JpaSpecificationExecutor<{{ data.table_name }}> {
+{% if data.columns %}
+{% for column in data.columns %}
+{% if column.column_key == 'UNI' %}
+/**
+* 根据 {{ column.capital_column_name }} 查询
+* @param {{ column.column_name }} /
+* @return /
+*/
+{{ data.table_name }} findBy{{ column.capital_column_name }} ({{ column.column_type }} {{ column.column_name }});
+{% endif %}
+{% endfor %}
+{% endif %}
+}

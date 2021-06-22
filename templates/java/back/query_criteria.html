@@ -1,0 +1,47 @@
+package {{ data.package }}.service.dto;
+
+import lombok.Data;
+<#if queryHasTimestamp>
+import java.sql.Timestamp;
+{% if data.has_big_decimal %}
+import java.math.BigDecimal;
+{% endif %}
+{% if data.betweens %}
+import java.util.List;
+{% endif %}
+{% if data.query_columns %}
+import me.zhengjie.annotation.Query;
+{% endif %}
+
+/**
+* @description /
+* @author {{ data.author }}
+* @date {{ data.date }}
+**/
+@Data
+public class {{ data.class_name }}QueryCriteria{
+{% if data.query_columns %}
+{% for column in data.query_columns %}
+{% if column.query_type == '=' %}
+/** 精确 */
+@Query
+{% elif column.query_type == 'Like' %}
+/** 模糊 */
+@Query(type = Query.Type.INNER_LIKE)
+{% elif column.query_type == '!=' %}
+/** 不等于 */
+@Query(type = Query.Type.NOT_EQUAL)
+{% elif column.query_type == 'NotNull' %}
+/** 不为空 */
+@Query(type = Query.Type.NOT_NULL)
+{% elif column.query_type == '>=' %}
+/** 大于等于 */
+@Query(type = Query.Type.GREATER_THAN)
+{% elif column.query_type == '>=' %}
+/** 小于等于 */
+@Query(type = Query.Type.LESS_THAN)
+{% endif %}
+private {{ column.column_type }} {{ column.change_column_name }};
+{% endfor %}
+{% endif %}
+}

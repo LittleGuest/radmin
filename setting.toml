@@ -1,0 +1,33 @@
+# 开发
+[dev]
+name = "radmin"
+port = 10241
+
+[dev.mysql]
+url = "localhost:3306/radmin"
+username = "root"
+password = "root"
+
+[dev.redis]
+host = "localhost"
+port = 6379
+password = ""
+db = 0
+
+
+# 生产
+
+[prod]
+name = "radmin"
+port = 10241
+
+[prod.mysql]
+url = "127.0.0.1:3306/radmin"
+username = "root"
+password = "root"
+
+[prod.redis]
+host = "127.0.0.1"
+port = 6379
+#password = ""
+#db = 0
